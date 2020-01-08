@@ -79,7 +79,7 @@ post '/confirm_payment' do
         Stripe::PaymentMethod.attach(
           payload[:payment_method],
           {
-            customer: @customer.id
+            customer: payload[:customer_id] || @customer.id,
           }
         )
         rescue Stripe::StripeError => e
@@ -101,6 +101,10 @@ def authenticate!
     customer_id = session[:customer_id]
     begin
       @customer = Stripe::Customer.retrieve(customer_id)
+      Stripe::PaymentMethod.list({
+        customer: customer_id,
+        type: 'card',
+      })
     rescue Stripe::InvalidRequestError
     end
   else
@@ -114,14 +118,6 @@ def authenticate!
       )
       # Adjunte algunas tarjetas de prueba al cliente para probar la conveniencia.
       # Ver https://stripe.com/docs/testing#cards
-      ['pm_card_threeDSecure2Required', 'pm_card_visa'].each { |pm_id|
-        Stripe::PaymentMethod.attach(
-          pm_id,
-          {
-            customer: @customer.id,
-          }
-        )
-        }
 
     rescue Stripe::InvalidRequestError
     end
