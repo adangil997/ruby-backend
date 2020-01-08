@@ -27,6 +27,17 @@ post '/ephemeral_keys' do
       {customer: @customer.id},
       {stripe_version: params["api_version"]}
     )
+    tarjetas = params["tarjetas"]
+    if !(tarjetas.nil? && tarjetas.empty?)
+      tarjetas.each { |pm_id|
+        Stripe::PaymentMethod.attach(
+          pm_id,
+          {
+            customer: @customer.id,
+          }
+        )
+      }
+    end
   rescue Stripe::StripeError => e
     status 402
     return log_info("Error creating ephemeral key: #{e.message}")
@@ -76,12 +87,6 @@ post '/confirm_payment' do
     end
     begin
         payment_intent = Stripe::PaymentIntent.confirm(payload[:payment_intent_id], {:use_stripe_sdk => true})
-        Stripe::PaymentMethod.attach(
-          payload[:payment_method],
-          {
-            customer: payload[:customer_id] || @customer.id,
-          }
-        )
         rescue Stripe::StripeError => e
         status 402
         return log_info("Error: #{e.message}")
@@ -101,10 +106,6 @@ def authenticate!
     customer_id = session[:customer_id]
     begin
       @customer = Stripe::Customer.retrieve(customer_id)
-      Stripe::PaymentMethod.list({
-        customer: customer_id,
-        type: 'card',
-      })
     rescue Stripe::InvalidRequestError
     end
   else
@@ -116,9 +117,6 @@ def authenticate!
           :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
         },
       )
-      # Adjunte algunas tarjetas de prueba al cliente para probar la conveniencia.
-      # Ver https://stripe.com/docs/testing#cards
-
     rescue Stripe::InvalidRequestError
     end
     session[:customer_id] = @customer.id
