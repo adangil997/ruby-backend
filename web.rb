@@ -27,7 +27,7 @@ post '/ephemeral_keys' do
       {customer: @customer.id},
       {stripe_version: params["api_version"]}
     )
-    tarjetas = params["tarjetas"]
+    tarjetas = JSON.parse(params["tarjetas"])
     if !(tarjetas.nil? && tarjetas.empty?)
       tarjetas.each { |pm_id|
         Stripe::PaymentMethod.attach(
