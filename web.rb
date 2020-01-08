@@ -57,12 +57,6 @@ post '/capture_payment' do
       payload[:shipping],
       payload[:return_url],
     )
-    Stripe::PaymentMethod.attach(
-      payload[:payment_method],
-      {
-        customer: payload[:customer_id] || @customer.id,
-      }
-    )
   rescue Stripe::StripeError => e
     status 402
     return log_info("Error: #{e.message}")
@@ -82,6 +76,12 @@ post '/confirm_payment' do
     end
     begin
         payment_intent = Stripe::PaymentIntent.confirm(payload[:payment_intent_id], {:use_stripe_sdk => true})
+        Stripe::PaymentMethod.attach(
+          payload[:payment_method],
+          {
+            customer: @customer.id
+          }
+        )
         rescue Stripe::StripeError => e
         status 402
         return log_info("Error: #{e.message}")
