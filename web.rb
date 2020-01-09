@@ -27,7 +27,7 @@ post '/ephemeral_keys' do
       {customer: @customer.id},
       {stripe_version: params["api_version"]}
     )
-    if !(params["tarjetas"].empty?)
+    if !(params["tarjetas"].nil?)
       json = JSON.parse(params["tarjetas"])
       tarjetas = json.values
       if !(tarjetas.empty?)
