@@ -39,7 +39,6 @@ end
 
 post '/capture_payment' do
   payload = params
-  authenticate(payload[:customer_id])
   # Obtenga los detalles de la tarjeta de crédito enviados
   if request.content_type.include? 'application/json' and params.empty?
     payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
@@ -51,7 +50,7 @@ post '/capture_payment' do
       payload[:amount],
       payload[:source],
       payload[:payment_method],
-      payload[:customer_id] || @customer.id,
+      payload[:customer_id],
       payload[:metadata],
       'usd',
       payload[:shipping],
@@ -70,7 +69,6 @@ end
 
 post '/confirm_payment' do
   payload = params
-  authenticate(payload[:customer_id])
   if request.content_type.include? 'application/json' and params.empty?
       payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
   end
