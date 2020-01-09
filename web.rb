@@ -38,7 +38,7 @@ post '/ephemeral_keys' do
 end
 
 post '/capture_payment' do
-  authenticate!
+  authenticate(nil)!
   # Obtenga los detalles de la tarjeta de crédito enviados
   payload = params
   if request.content_type.include? 'application/json' and params.empty?
@@ -69,7 +69,7 @@ post '/capture_payment' do
 end
 
 post '/confirm_payment' do
-    authenticate!
+    authenticate(nil)!
     payload = params
     if request.content_type.include? 'application/json' and params.empty?
         payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
@@ -87,7 +87,7 @@ post '/confirm_payment' do
     }.to_json
 end
 
-def authenticate!
+def authenticate(customerId)!
   # Este código simula "cargar el cliente Stripe para su sesión actual".
   # Su propia lógica probablemente se verá muy diferente.
   return @customer if @customer
@@ -96,30 +96,34 @@ def authenticate!
     begin
       @customer = Stripe::Customer.retrieve(customer_id)
       if !(params["tarjetas"].nil?)
-      json = JSON.parse(params["tarjetas"])
-      tarjetas = json.values
-      if !(tarjetas.empty?)
-        tarjetas.each { |pm_id|
-          Stripe::PaymentMethod.attach(
-            pm_id,
-            {
-              customer: @customer.id,
-            }
-          )
-        }
+        json = JSON.parse(params["tarjetas"])
+        tarjetas = json.values
+        if !(tarjetas.empty?)
+          tarjetas.each { |pm_id|
+            Stripe::PaymentMethod.attach(
+              pm_id,
+              {
+                customer: @customer.id,
+              }
+            )
+          }
+        end
       end
-    end
     rescue Stripe::InvalidRequestError
     end
   else
     begin
-      @customer = Stripe::Customer.create(
-        :description => 'mobile SDK example customer',
-        :metadata => {
-          # Agregue el ID de cliente de nuestra aplicación para este Cliente, para que sea más fácil buscar
-          :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
-        },
-      )
+      if customerId.nil?
+        @customer = Stripe::Customer.create(
+          :description => 'mobile SDK example customer',
+          :metadata => {
+            # Agregue el ID de cliente de nuestra aplicación para este Cliente, para que sea más fácil buscar
+            :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
+          },
+        )
+      else
+        @customer = Stripe::Customer.retrieve(customerId)
+      end
 
       if !(params["tarjetas"].nil?)
         json = JSON.parse(params["tarjetas"])
