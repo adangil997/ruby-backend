@@ -27,20 +27,6 @@ post '/ephemeral_keys' do
       {customer: @customer.id},
       {stripe_version: params["api_version"]}
     )
-    if !(params["tarjetas"].nil?)
-      json = JSON.parse(params["tarjetas"])
-      tarjetas = json.values
-      if !(tarjetas.empty?)
-        tarjetas.each { |pm_id|
-          Stripe::PaymentMethod.attach(
-            pm_id,
-            {
-              customer: @customer.id,
-            }
-          )
-        }
-      end
-    end
   rescue Stripe::StripeError => e
     status 402
     return log_info("Error creating ephemeral key: #{e.message}")
@@ -109,6 +95,20 @@ def authenticate!
     customer_id = session[:customer_id]
     begin
       @customer = Stripe::Customer.retrieve(customer_id)
+      if !(params["tarjetas"].nil?)
+      json = JSON.parse(params["tarjetas"])
+      tarjetas = json.values
+      if !(tarjetas.empty?)
+        tarjetas.each { |pm_id|
+          Stripe::PaymentMethod.attach(
+            pm_id,
+            {
+              customer: @customer.id,
+            }
+          )
+        }
+      end
+    end
     rescue Stripe::InvalidRequestError
     end
   else
@@ -120,6 +120,21 @@ def authenticate!
           :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
         },
       )
+
+      if !(params["tarjetas"].nil?)
+        json = JSON.parse(params["tarjetas"])
+        tarjetas = json.values
+        if !(tarjetas.empty?)
+          tarjetas.each { |pm_id|
+            Stripe::PaymentMethod.attach(
+              pm_id,
+              {
+                customer: @customer.id,
+              }
+            )
+          }
+        end
+      end
     rescue Stripe::InvalidRequestError
     end
     session[:customer_id] = @customer.id
