@@ -69,7 +69,7 @@ post '/capture_payment' do
 end
 
 post '/confirm_payment' do
-    authenticate(nil)
+    authenticate(params[:customer_id])
     payload = params
     if request.content_type.include? 'application/json' and params.empty?
         payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
