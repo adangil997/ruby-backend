@@ -21,7 +21,7 @@ get '/' do
 end
 
 post '/ephemeral_keys' do
-  authenticate(params[:customer_id])!
+  authenticate(params[:customer_id])
   begin
     key = Stripe::EphemeralKey.create(
       {customer: @customer.id},
@@ -38,7 +38,7 @@ post '/ephemeral_keys' do
 end
 
 post '/capture_payment' do
-  authenticate(nil)!
+  authenticate(nil)
   # Obtenga los detalles de la tarjeta de crédito enviados
   payload = params
   if request.content_type.include? 'application/json' and params.empty?
@@ -69,7 +69,7 @@ post '/capture_payment' do
 end
 
 post '/confirm_payment' do
-    authenticate(nil)!
+    authenticate(nil)
     payload = params
     if request.content_type.include? 'application/json' and params.empty?
         payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
@@ -87,7 +87,7 @@ post '/confirm_payment' do
     }.to_json
 end
 
-def authenticate(customerId)!
+def authenticate(customerId)
   # Este código simula "cargar el cliente Stripe para su sesión actual".
   # Su propia lógica probablemente se verá muy diferente.
   return @customer if @customer
