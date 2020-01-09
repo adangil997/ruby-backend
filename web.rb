@@ -38,9 +38,9 @@ post '/ephemeral_keys' do
 end
 
 post '/capture_payment' do
-  authenticate(params[:customer_id])
-  # Obtenga los detalles de la tarjeta de crédito enviados
   payload = params
+  authenticate(payload[:customer_id])
+  # Obtenga los detalles de la tarjeta de crédito enviados
   if request.content_type.include? 'application/json' and params.empty?
     payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
   end
@@ -69,22 +69,22 @@ post '/capture_payment' do
 end
 
 post '/confirm_payment' do
-    authenticate(params[:customer_id])
-    payload = params
-    if request.content_type.include? 'application/json' and params.empty?
-        payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
-    end
-    begin
-        payment_intent = Stripe::PaymentIntent.confirm(payload[:payment_intent_id], {:use_stripe_sdk => true})
-        rescue Stripe::StripeError => e
-        status 402
-        return log_info("Error: #{e.message}")
-    end
+  payload = params
+  authenticate(payload[:customer_id])
+  if request.content_type.include? 'application/json' and params.empty?
+      payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
+  end
+  begin
+      payment_intent = Stripe::PaymentIntent.confirm(payload[:payment_intent_id], {:use_stripe_sdk => true})
+      rescue Stripe::StripeError => e
+      status 402
+      return log_info("Error: #{e.message}")
+  end
 
-    status 200
-    return {
-        :secret => payment_intent.client_secret
-    }.to_json
+  status 200
+  return {
+      :secret => payment_intent.client_secret
+  }.to_json
 end
 
 def authenticate(customerId)
@@ -95,20 +95,6 @@ def authenticate(customerId)
     customer_id = session[:customer_id]
     begin
       @customer = Stripe::Customer.retrieve(customer_id)
-      if !(params["tarjetas"].nil?)
-        json = JSON.parse(params["tarjetas"])
-        tarjetas = json.values
-        if !(tarjetas.empty?)
-          tarjetas.each { |pm_id|
-            Stripe::PaymentMethod.attach(
-              pm_id,
-              {
-                customer: @customer.id,
-              }
-            )
-          }
-        end
-      end
     rescue Stripe::InvalidRequestError
     end
   else
@@ -123,21 +109,6 @@ def authenticate(customerId)
         )
       else
         @customer = Stripe::Customer.retrieve(customerId)
-      end
-
-      if !(params["tarjetas"].nil?)
-        json = JSON.parse(params["tarjetas"])
-        tarjetas = json.values
-        if !(tarjetas.empty?)
-          tarjetas.each { |pm_id|
-            Stripe::PaymentMethod.attach(
-              pm_id,
-              {
-                customer: @customer.id,
-              }
-            )
-          }
-        end
       end
     rescue Stripe::InvalidRequestError
     end
