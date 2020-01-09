@@ -21,7 +21,7 @@ get '/' do
 end
 
 post '/ephemeral_keys' do
-  authenticate(params["customer_id"])!
+  authenticate(params[:customer_id])!
   begin
     key = Stripe::EphemeralKey.create(
       {customer: @customer.id},
