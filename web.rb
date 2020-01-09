@@ -38,7 +38,7 @@ post '/ephemeral_keys' do
 end
 
 post '/capture_payment' do
-  authenticate(params[:customer_id] || @customer.id)
+  authenticate(params[:customer_id])
   # Obtenga los detalles de la tarjeta de crédito enviados
   payload = params
   if request.content_type.include? 'application/json' and params.empty?
@@ -69,7 +69,7 @@ post '/capture_payment' do
 end
 
 post '/confirm_payment' do
-    authenticate(params[:customer_id] || @customer.id)
+    authenticate(nil)
     payload = params
     if request.content_type.include? 'application/json' and params.empty?
         payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
