@@ -90,29 +90,16 @@ end
 def authenticate(customerId)
   # Este código simula "cargar el cliente Stripe para su sesión actual".
   # Su propia lógica probablemente se verá muy diferente.
-  return @customer if @customer
-  if session.has_key?(:customer_id)
-    customer_id = session[:customer_id]
-    begin
-      @customer = Stripe::Customer.retrieve(customer_id)
-    rescue Stripe::InvalidRequestError
-    end
+  if customerId.nil?
+    @customer = Stripe::Customer.create(
+      :description => 'mobile SDK example customer',
+      :metadata => {
+        # Agregue el ID de cliente de nuestra aplicación para este Cliente, para que sea más fácil buscar
+        :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
+      },
+    )
   else
-    begin
-      if customerId.nil?
-        @customer = Stripe::Customer.create(
-          :description => 'mobile SDK example customer',
-          :metadata => {
-            # Agregue el ID de cliente de nuestra aplicación para este Cliente, para que sea más fácil buscar
-            :my_customer_id => '72F8C533-FCD5-47A6-A45B-3956CA8C792D',
-          },
-        )
-      else
-        @customer = Stripe::Customer.retrieve(customerId)
-      end
-    rescue Stripe::InvalidRequestError
-    end
-    session[:customer_id] = @customer.id
+    @customer = Stripe::Customer.retrieve(customerId)
   end
   @customer
 end
