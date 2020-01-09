@@ -27,17 +27,19 @@ post '/ephemeral_keys' do
       {customer: @customer.id},
       {stripe_version: params["api_version"]}
     )
-    json = JSON.parse(params["tarjetas"])
-    tarjetas = json.values
-    if !(tarjetas.nil? && tarjetas.empty?)
-      tarjetas.each { |pm_id|
-        Stripe::PaymentMethod.attach(
-          pm_id,
-          {
-            customer: @customer.id,
-          }
-        )
-      }
+    if !(params["tarjetas"].empty?)
+      json = JSON.parse(params["tarjetas"])
+      tarjetas = json.values
+      if !(tarjetas.empty?)
+        tarjetas.each { |pm_id|
+          Stripe::PaymentMethod.attach(
+            pm_id,
+            {
+              customer: @customer.id,
+            }
+          )
+        }
+      end
     end
   rescue Stripe::StripeError => e
     status 402
