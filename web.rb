@@ -55,6 +55,7 @@ post '/capture_payment' do
       'mxn',
       payload[:shipping],
       payload[:return_url],
+      payload[:description]
     )
   rescue Stripe::StripeError => e
     status 402
@@ -204,15 +205,15 @@ post '/stripe-webhook' do
 end
 
 def create_payment_intent(amount, source_id, payment_method_id, customer_id = nil,
-                          metadata = {}, currency = 'mxn', shipping = nil, return_url = nil, confirm = false)
+                          metadata = {}, currency = 'mxn', shipping = nil, return_url = nil, confirm = false, description)
   return Stripe::PaymentIntent.create(
     :amount => amount,
-    :currency => currency || 'usd',
+    :currency => currency || 'mxn',
     :customer => customer_id,
     :source => source_id,
     :payment_method => payment_method_id,
     :payment_method_types => ['card'],
-    :description => "Example PaymentIntent",
+    :description => description,
     :shipping => shipping,
     :return_url => return_url,
     :confirm => confirm,
