@@ -227,8 +227,8 @@ def create_payment_intent(amount, source_id, payment_method_id, customer_id = ni
 end
 
 def create_and_capture_payment_intent(amount, source_id, payment_method_id, customer_id = nil,
-                                      metadata = {}, currency = 'usd', shipping = nil, return_url = nil)
+                                      metadata = {}, currency = 'usd', shipping = nil, return_url = nil, description)
   payment_intent = create_payment_intent(amount, source_id, payment_method_id, customer_id,
-                                          metadata, currency, shipping, return_url, true)
+                                          metadata, currency, shipping, return_url, true, description)
   return payment_intent
 end
