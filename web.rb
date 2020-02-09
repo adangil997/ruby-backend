@@ -37,6 +37,30 @@ post '/ephemeral_keys' do
   key.to_json
 end
 
+post '/refund_payment' do
+  payload = params
+  # Obtenga los detalles de la tarjeta de crédito enviados
+  if request.content_type.include? 'application/json' and params.empty?
+    payload = Sinatra::IndifferentHash[JSON.parse(request.body.read)]
+  end
+
+  # Crear y capturar el PaymentIntent a través de la API de Stripe: esto cargará la tarjeta del usuario
+  begin
+    refund = Stripe::Refund.create({
+      payload[:amount],
+      payload[:payment_intent]
+    })
+  rescue Stripe::StripeError => e
+    status 402
+    return log_info("Error: #{e.message}")
+  end
+
+  status 200
+  return {
+      :refund => refund
+  }.to_json
+end
+
 post '/capture_payment' do
   payload = params
   # Obtenga los detalles de la tarjeta de crédito enviados
