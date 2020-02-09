@@ -47,8 +47,8 @@ post '/refund_payment' do
   # Crear y capturar el PaymentIntent a través de la API de Stripe: esto cargará la tarjeta del usuario
   begin
     refund = Stripe::Refund.create({
-      payload[:amount],
-      payload[:payment_intent]
+      amount: payload[:amount],
+      payment_intent: payload[:payment_intent]
     })
   rescue Stripe::StripeError => e
     status 402
